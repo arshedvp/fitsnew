@@ -1,0 +1,263 @@
+Build a full-stack e-commerce website for the clothing brand “FitsNew” with a sub-brand “FitsAgain” (vintage/thrift).
+The website should look and function like a modern online shopping platform,
+BUT all orders must happen through WhatsApp only.
+There must be NO login, NO user accounts, and NO order history.
+
+🏬 PROJECT OVERVIEW
+
+Create a premium, modern, mobile-friendly clothing e-commerce website with:
+
+FitsNew → new/fresh clothing
+
+FitsAgain → curated vintage/thrift clothing
+
+Users can:
+
+✔ Browse products
+✔ Filter & search
+✔ View product details
+✔ Add multiple items to cart
+✔ Order via WhatsApp from product page
+✔ Order via WhatsApp from cart
+
+No direct payment, no internal checkout, no order tracking.
+
+🎯 FEATURES
+1️⃣ NO LOGIN / NO SIGNUP / NO ACCOUNT SECTION
+
+Users must be able to use everything without any login.
+
+No Google login, no OTP login, nothing.
+
+Only admin has login access.
+
+2️⃣ HOME PAGE
+
+Modern landing page with:
+
+Banner
+
+Categories
+
+New arrivals
+
+Trending products
+
+FitsAgain highlighted section
+
+Use smooth animations & TailwindCSS for premium feel.
+
+3️⃣ PRODUCT LISTING
+
+Product categories:
+
+Shirts
+
+T-shirts
+
+Pants
+
+Jeans
+
+Jackets
+
+Vintage (FitsAgain)
+
+Each product includes:
+
+Multiple images
+
+Title
+
+Price
+
+Sizes
+
+Description
+
+Stock
+
+Category (FitsNew or FitsAgain)
+
+⚡ 4️⃣ PRODUCT PAGE (IMPORTANT)
+
+The product page MUST have:
+
+Image gallery
+
+Size selection
+
+Description
+
+Price
+
+Add to Cart button
+
+WhatsApp Order Button (with WhatsApp icon)
+
+➤ When user clicks Buy on WhatsApp
+
+Redirect to:
+
+https://wa.me/<YOUR_NUMBER>?text=<ENCODED_PRODUCT_MESSAGE>
+
+
+Message must automatically include:
+
+Hello, I want to order this product from FitsNew:
+
+Product: <Product Name>
+Price: ₹<Price>
+Size: <Selected Size>
+Quantity: 1
+Product ID: <ID>
+Product Link: <URL>
+
+Please confirm availability.
+
+
+Encode the message correctly for the WhatsApp URL.
+
+🛒 5️⃣ CART SYSTEM
+
+Users can:
+
+Add multiple products
+
+Adjust quantity
+
+Remove items
+
+Cart may be client-side (LocalStorage) or DB-based.
+
+🔥 6️⃣ CART → WHATSAPP CHECKOUT (MULTIPLE PRODUCTS)
+
+When user clicks Checkout on WhatsApp, open ONE WhatsApp message containing ALL products in cart.
+
+Message Format:
+Hello, I want to place an order from FitsNew:
+
+1) <Product Name>
+   Size: <Size>
+   Qty: <Quantity>
+   Price: ₹<Price>
+
+2) <Next Product>
+   ...
+
+Total Items: <count>
+Grand Total: ₹<total_price>
+
+Please confirm product availability.
+
+
+Encode automatically into WhatsApp link:
+
+https://wa.me/<YOUR_NUMBER>?text=<ENCODED_CART_MESSAGE>
+
+🟧 7️⃣ FITSAGAIN SECTION
+
+A separate category page for thrift/vintage products:
+
+Unique UI (retro + modern mix)
+
+Aesthetic styling
+
+Curated product layout
+
+⚙️ 8️⃣ ADMIN DASHBOARD
+
+Admin login required (email/password) to:
+
+Add products
+
+Edit products
+
+Delete products
+
+Update stock
+
+Upload images (use Cloudinary)
+
+Manage categories
+
+Manage FitsAgain products
+
+No customer data is stored.
+
+💻 9️⃣ TECH STACK (Preferred)
+
+Frontend: React or Next.js + TailwindCSS
+
+Backend: Node.js + Express
+
+Database: MongoDB
+
+Image Upload: Cloudinary
+
+Cart: LocalStorage or backend
+
+Orders: Only via WhatsApp encoded links
+
+🎨 🔟 UI REQUIREMENTS
+
+The UI must be:
+
+Premium
+
+Clean
+
+Fast
+
+Responsive
+
+Smooth animations
+
+Big images
+
+Beautiful typography
+
+Modern popup modals
+
+WhatsApp buttons with icon
+
+Design inspirations:
+
+Nike
+
+Urbanic
+
+AJIO
+
+H&M
+
+📦 1️⃣1️⃣ DELIVERABLES
+
+Provide:
+
+Complete frontend
+
+Backend APIs
+
+Admin panel
+
+Product models
+
+WhatsApp message generator
+
+Cart + WhatsApp checkout
+
+Complete folder structure
+
+Installation & run instructions
+
+Dummy data
+
+⭐ FINAL NOTES
+
+✔ No login
+✔ No signup
+✔ No order history
+✔ WhatsApp ordering from product page
+✔ WhatsApp ordering from cart
+✔ Auto-filled messages for single & multiple products
