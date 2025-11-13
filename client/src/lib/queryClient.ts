@@ -11,16 +11,39 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
-): Promise<Response> {
+): Promise<any> {
+  const token = localStorage.getItem("admin_token");
+  const headers: Record<string, string> = {};
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  if (data) {
+    headers["Content-Type"] = "application/json";
+  }
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
 
   await throwIfResNotOk(res);
-  return res;
+  
+  if (res.status === 204 || res.headers.get("content-length") === "0") {
+    return {};
+  }
+  
+  const text = await res.text();
+  if (!text) return {};
+  
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {};
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
