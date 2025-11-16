@@ -51,7 +51,7 @@ export function Hero() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border border-ui-text text-ui-text bg-transparent px-8 py-3 rounded-md hover:bg-ui-bg-soft transition-colors w-full sm:w-auto"
+                  className="border border-ui-text text-ui-text bg-white px-8 py-3 rounded-md hover:bg-ui-bg-soft transition-colors w-full sm:w-auto"
                   onClick={handleScrollClick}
                   data-testid="button-explore"
                 >
