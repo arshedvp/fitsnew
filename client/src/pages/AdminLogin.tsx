@@ -77,7 +77,7 @@ export default function AdminLogin() {
                     <FormControl>
                       <Input
                         type="email"
-                        placeholder="admin@fitsnew.com"
+                        placeholder="Username"
                         {...field}
                         data-testid="input-email"
                       />

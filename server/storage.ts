@@ -81,8 +81,8 @@ export class MemStorage implements IStorage {
     const adminId = randomUUID();
     this.admins.set(adminId, {
       id: adminId,
-      email: "admin@fitsnew.com",
-      password: "$2b$10$2z3sSzQNQ9mdeQERMwlZiu/OnP1Xte2psrH0Jvs1lJd4SmANqX9e.",
+      email: "arshedvp@fitsnew.in",
+      password: "$2b$10$dL38GPQH2vr.ZmxgGG4XHOs8DOSf9Dlrt7PEpiNhYP5MJlr63v3fq",
     });
 
     const sampleProducts = [

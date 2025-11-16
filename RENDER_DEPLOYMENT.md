@@ -43,8 +43,9 @@ Render will auto-detect Node.js, but verify these settings:
 - **Runtime:** `Node`
 - **Build Command:** 
   ```
-  npm install && npm run build
+  npm ci --include=dev && npm run build
   ```
+  *(This ensures dev dependencies like `vite` are installed for the build)*
 - **Start Command:**
   ```
   npm start
@@ -58,7 +59,10 @@ NODE_ENV=production
 PORT=10000
 ```
 
-**Note:** Render automatically sets `PORT`, but we're setting it explicitly to be safe.
+**Important Notes:**
+- `NODE_ENV=production` is needed for runtime, but we use `npm ci --include=dev` in the build command to ensure build tools are available
+- Render automatically sets `PORT`, but we're setting it explicitly to be safe
+- If `npm ci` fails (no `package-lock.json`), use: `npm install --include=dev && npm run build`
 
 ---
 
@@ -368,19 +372,148 @@ Just create multiple cron jobs with the same 10-minute schedule.
 ## 🐛 Troubleshooting
 
 ### Build Fails:
-- Check build logs in Render dashboard
+
+#### Error: "vite: not found" or "sh: 1: vite: not found"
+
+**Problem:** Dev dependencies aren't being installed during build.
+
+**Solution:** Update your Build Command in Render to:
+```
+NPM_CONFIG_PRODUCTION=false npm install && npm run build
+```
+
+Or use:
+```
+npm install --include=dev && npm run build
+```
+
+**Steps:**
+1. Go to your Render service → **"Settings"** tab
+2. Scroll to **"Build & Deploy"** section
+3. Update **"Build Command"** to one of the above
+4. Click **"Save Changes"**
+5. Trigger a new deploy (or push a commit)
+
+#### Other Build Issues:
+- Check build logs in Render dashboard for specific errors
 - Verify `package.json` has correct scripts
-- Ensure all dependencies are in `dependencies` (not `devDependencies`)
+- Ensure `package-lock.json` is committed to Git
+- If using `npm ci`, make sure `package-lock.json` exists
 
 ### Service Won't Start:
 - Check start command: `npm start`
 - Verify `dist/server/index.js` exists after build
 - Check environment variables
 
+### Certificate Error (SSL Not Working):
+
+**Symptoms:** 
+- Domain shows "Domain Verified" ✅
+- But shows "Certificate Error" ❌
+- Error: "We are unable to issue a certificate for this site"
+
+**Common Causes & Fixes:**
+
+#### 1. **DNS Records Not Correctly Configured**
+
+**Check in GoDaddy:**
+1. Go to GoDaddy → My Products → Domains → fitsnew.in → DNS
+2. Verify you have these records:
+
+   **For `fitsnew.in` (root domain):**
+   - **Type:** `CNAME` (or `A` if CNAME not allowed)
+   - **Name:** `@`
+   - **Value:** `fitsnew.onrender.com` (or your Render service URL)
+   - **TTL:** 1 Hour (3600)
+
+   **For `www.fitsnew.in`:**
+   - **Type:** `CNAME`
+   - **Name:** `www`
+   - **Value:** `fitsnew.onrender.com` (same as above)
+   - **TTL:** 1 Hour (3600)
+
+#### 2. **GoDaddy Doesn't Allow CNAME for Root Domain**
+
+If GoDaddy shows an error when adding CNAME for `@`, use **A record** instead:
+
+1. **Get Render's IP Address:**
+   - In Render dashboard, go to your service
+   - Check the "Info" tab or contact Render support
+   - Or use: `nslookup fitsnew.onrender.com` in terminal
+
+2. **Add A Record in GoDaddy:**
+   - **Type:** `A`
+   - **Name:** `@`
+   - **Value:** [Render's IP address]
+   - **TTL:** 1 Hour
+
+3. **Keep CNAME for www:**
+   - **Type:** `CNAME`
+   - **Name:** `www`
+   - **Value:** `fitsnew.onrender.com`
+
+#### 3. **DNS Not Propagated Yet**
+
+**Check DNS Propagation:**
+- Use [whatsmydns.net](https://www.whatsmydns.net) or [dnschecker.org](https://dnschecker.org)
+- Enter: `fitsnew.in`
+- Check if it points to `fitsnew.onrender.com`
+- Wait 1-24 hours for full propagation (usually 1-2 hours)
+
+**What to Check:**
+- All DNS servers should show the same value
+- If some show old values, wait longer
+
+#### 4. **Remove Conflicting Records**
+
+**In GoDaddy, DELETE these if they exist:**
+- Any other A records for `@`
+- Any other CNAME records for `@` or `www`
+- Any AAAA (IPv6) records that might conflict
+
+#### 5. **Verify Render Configuration**
+
+**In Render Dashboard:**
+1. Go to your service → Settings → Custom Domains
+2. Click on `fitsnew.in`
+3. Check what DNS records Render expects
+4. Make sure GoDaddy matches exactly
+
+#### 6. **Wait and Retry**
+
+**Timeline:**
+- DNS propagation: 1-24 hours (usually 1-2 hours)
+- SSL certificate: 5-60 minutes after DNS is correct
+- **Total wait time:** Up to 2-3 hours after fixing DNS
+
+**What to do:**
+1. Fix DNS records in GoDaddy
+2. Wait 1-2 hours
+3. Check DNS propagation (whatsmydns.net)
+4. If DNS is correct, wait another 30-60 minutes for SSL
+5. Certificate should auto-generate
+
+#### 7. **Still Not Working?**
+
+**Contact Render Support:**
+1. In Render dashboard, click "Contact support" (purple link)
+2. Explain: "Certificate error after DNS configuration"
+3. Provide:
+   - Your domain: `fitsnew.in`
+   - Your Render service URL
+   - Screenshot of GoDaddy DNS records
+
+**Or try:**
+- Delete the domain in Render
+- Wait 5 minutes
+- Re-add the domain
+- Re-configure DNS in GoDaddy
+
 ### Domain Not Working:
 - Wait 1-24 hours for DNS propagation
 - Verify DNS records in GoDaddy match Render's requirements
 - Check Render's custom domain status (should show "Valid")
+- Use [whatsmydns.net](https://www.whatsmydns.net) to check DNS propagation
 
 ### Admin Login Not Working:
 - Verify backend API is running
@@ -406,12 +539,76 @@ Your website should now be live at:
 
 ---
 
-## 📝 Next Steps (Optional)
+## ✅ Post-Launch Checklist
 
-1. **Set up database:** Migrate to Render PostgreSQL (free tier)
-2. **Cloud storage:** Use AWS S3 or Cloudinary for images
-3. **Monitoring:** Set up UptimeRobot for uptime monitoring
-4. **Backup:** Regularly backup your `data/db.json` file
+Now that your site is live, here's what to do:
+
+### Immediate Actions:
+
+1. **✅ Test Your Site:**
+   - [ ] Visit `https://fitsnew.in` - homepage loads correctly
+   - [ ] Test `/shop` page - products display
+   - [ ] Test `/cart` page - cart functionality
+   - [ ] Test product detail pages
+   - [ ] Test on mobile device
+
+2. **✅ Test Admin Panel:**
+   - [ ] Go to `https://fitsnew.in/admin/login`
+   - [ ] Login with your admin credentials
+   - [ ] Test creating a new product
+   - [ ] Test uploading a product image
+   - [ ] Verify image appears on the site
+
+3. **✅ Keep Service Awake (Important!):**
+   - [ ] Set up [cron-job.org](https://cron-job.org) to ping your site every 10 minutes
+   - [ ] Or use [UptimeRobot](https://uptimerobot.com) (checks every 5 minutes)
+   - [ ] This prevents cold starts (30-60 second delays)
+
+4. **✅ Verify SSL Certificate:**
+   - [ ] Check that `https://fitsnew.in` shows a secure lock icon
+   - [ ] Test both `fitsnew.in` and `www.fitsnew.in`
+   - [ ] Both should redirect to HTTPS
+
+### Recommended Next Steps:
+
+5. **📊 Set Up Monitoring:**
+   - [ ] Create account on [UptimeRobot.com](https://uptimerobot.com) (free)
+   - [ ] Add monitor for `https://fitsnew.in`
+   - [ ] Get email alerts if site goes down
+
+6. **💾 Backup Strategy:**
+   - [ ] Your `data/db.json` file persists on Render
+   - [ ] Consider exporting data regularly
+   - [ ] Or migrate to Render PostgreSQL (free tier) for better reliability
+
+7. **🖼️ Image Optimization (Future):**
+   - [ ] Current: Images stored on Render's filesystem (works fine!)
+   - [ ] Future: Consider AWS S3 or Cloudinary for:
+     - CDN delivery (faster loading)
+     - Automatic backups
+     - Better scalability
+
+8. **🔍 SEO & Analytics:**
+   - [ ] Add Google Analytics (if needed)
+   - [ ] Submit sitemap to Google Search Console
+   - [ ] Test site speed with [PageSpeed Insights](https://pagespeed.web.dev)
+
+### Maintenance Tips:
+
+- **Monitor Render Dashboard:** Check logs regularly for errors
+- **Update Dependencies:** Run `npm audit` and update packages periodically
+- **Test After Updates:** Always test admin panel after code changes
+- **Keep Service Awake:** Maintain the cron job to prevent cold starts
+
+---
+
+## 📝 Future Enhancements (Optional)
+
+1. **Database:** Migrate to Render PostgreSQL (free tier) for better data persistence
+2. **Cloud Storage:** Use AWS S3 or Cloudinary for images (CDN + backups)
+3. **Email Service:** Set up transactional emails (SendGrid, Mailgun)
+4. **Payment Gateway:** Integrate Stripe/PayPal for checkout
+5. **Analytics:** Add Google Analytics or Plausible Analytics
 
 ---
 
