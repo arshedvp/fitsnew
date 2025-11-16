@@ -47,6 +47,15 @@ export default function AdminDashboard() {
     },
   });
 
+  const toggleOosMutation = useMutation({
+    mutationFn: async ({ id, stock }: { id: string; stock: number }) => {
+      return apiRequest("PATCH", `/api/products/${id}`, { stock });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+    },
+  });
+
   const handleLogout = () => {
     localStorage.removeItem("admin_token");
     setLocation("/admin/login");
@@ -208,6 +217,9 @@ export default function AdminDashboard() {
                           {product.isFeatured && (
                             <Badge variant="outline">Featured</Badge>
                           )}
+                          {product.stock <= 0 && (
+                            <Badge variant="destructive" className="ml-2">Out of stock</Badge>
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-2 justify-end">
@@ -227,6 +239,30 @@ export default function AdminDashboard() {
                               data-testid={`button-delete-${product.id}`}
                             >
                               <Trash2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant={product.stock <= 0 ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => {
+                                if (product.stock > 0) {
+                                  if (!confirm("Mark this product out of stock?")) return;
+                                  toggleOosMutation.mutate({ id: product.id, stock: 0 });
+                                  toast({ title: "Product updated", description: "Product marked out of stock" });
+                                } else {
+                                  const val = prompt("Enter new stock quantity:", "10");
+                                  if (!val) return;
+                                  const num = parseInt(val, 10);
+                                  if (isNaN(num) || num < 0) {
+                                    toast({ title: "Invalid number", variant: "destructive" });
+                                    return;
+                                  }
+                                  toggleOosMutation.mutate({ id: product.id, stock: num });
+                                  toast({ title: "Product updated", description: "Product stock updated" });
+                                }
+                              }}
+                              data-testid={`button-toggle-oos-${product.id}`}
+                            >
+                              {product.stock > 0 ? "Mark OOS" : "Restock"}
                             </Button>
                           </div>
                         </TableCell>

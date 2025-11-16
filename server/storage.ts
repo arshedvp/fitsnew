@@ -1,5 +1,7 @@
 import { type Admin, type InsertAdmin, type Product, type InsertProduct, type UpdateProduct } from "@shared/schema";
 import { randomUUID } from "crypto";
+import fs from "fs";
+import path from "path";
 
 export interface IStorage {
   getAdmin(id: string): Promise<Admin | undefined>;
@@ -19,10 +21,60 @@ export class MemStorage implements IStorage {
   private admins: Map<string, Admin>;
   private products: Map<string, Product>;
 
+  private dbPath: string;
+
+  private ensureDataDir() {
+    const dir = path.dirname(this.dbPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  }
+
+  private loadFromDisk() {
+    if (!fs.existsSync(this.dbPath)) return false;
+    try {
+      const raw = fs.readFileSync(this.dbPath, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (parsed?.admins && parsed?.products) {
+        for (const a of parsed.admins) {
+          this.admins.set(a.id, a as Admin);
+        }
+        for (const p of parsed.products) {
+          // restore Date objects
+          const prod = { ...p, createdAt: new Date(p.createdAt) } as Product;
+          this.products.set(prod.id, prod);
+        }
+        return true;
+      }
+    } catch (e) {
+      // ignore parse/load errors and fall back to seed
+    }
+    return false;
+  }
+
+  private saveToDisk() {
+    try {
+      this.ensureDataDir();
+      const admins = Array.from(this.admins.values());
+      const products = Array.from(this.products.values()).map(p => ({ ...p, createdAt: p.createdAt.toISOString() }));
+      const payload = { admins, products };
+      fs.writeFileSync(this.dbPath, JSON.stringify(payload, null, 2), "utf-8");
+    } catch (e) {
+      // log but don't throw
+      // eslint-disable-next-line no-console
+      console.warn("Could not save DB to disk:", (e as Error).message);
+    }
+  }
+
   constructor() {
     this.admins = new Map();
     this.products = new Map();
-    this.seedData();
+    // store DB in project data folder so it persists across restarts
+    this.dbPath = path.resolve(process.cwd(), "data", "db.json");
+
+    const loaded = this.loadFromDisk();
+    if (!loaded) {
+      this.seedData();
+      this.saveToDisk();
+    }
   }
 
   private seedData() {
@@ -111,6 +163,7 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const admin: Admin = { ...insertAdmin, id };
     this.admins.set(id, admin);
+    this.saveToDisk();
     return admin;
   }
 
@@ -146,6 +199,7 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
     };
     this.products.set(id, product);
+    this.saveToDisk();
     return product;
   }
 
@@ -161,11 +215,14 @@ export class MemStorage implements IStorage {
       ...updateProduct,
     };
     this.products.set(id, updated);
+    this.saveToDisk();
     return updated;
   }
 
   async deleteProduct(id: string): Promise<boolean> {
-    return this.products.delete(id);
+    const removed = this.products.delete(id);
+    if (removed) this.saveToDisk();
+    return removed;
   }
 }
 

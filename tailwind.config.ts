@@ -6,11 +6,27 @@ export default {
   theme: {
     extend: {
       borderRadius: {
+        xl: "1rem",
         lg: ".5625rem", /* 9px */
         md: ".375rem", /* 6px */
         sm: ".1875rem", /* 3px */
       },
+      boxShadow: {
+        card: "0 6px 18px rgba(17,17,17,0.06)",
+      },
       colors: {
+        // Brand colors
+        "brand-green": "#2F9C2F",
+        "brand-green-100": "#7ED07A",
+        "brand-navy": "#0D2B66",
+        "brand-navy-100": "#3557A1",
+        "brand-gold": "#D4AF37",
+        ui: {
+          bg: "#FFFFFF",
+          "bg-soft": "#F4F4F4",
+          border: "#E5E5E5",
+          text: "#111111",
+        },
         // Flat / base colors (regular buttons)
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",
@@ -84,7 +100,7 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],
-        display: ["Space Grotesk", "sans-serif"],
+        display: ["Space Grotesk", "Poppins", "Outfit", "sans-serif"],
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
       },

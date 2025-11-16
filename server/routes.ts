@@ -5,6 +5,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { insertAdminSchema, insertProductSchema, updateProductSchema } from "@shared/schema";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 const JWT_SECRET = process.env.SESSION_SECRET || "your-secret-key-change-in-production";
 
@@ -164,6 +167,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: error.message });
     }
   });
+
+  // Image upload endpoint (authenticated)
+  try {
+    // Prefer the uploads dir that the static server will actually serve from.
+    // When running the bundled server the static middleware serves `dist/server/public`.
+    const preferred = path.resolve(import.meta.dirname, "public", "uploads"); // dist/server/public/uploads
+    const fallback = path.resolve(import.meta.dirname, "..", "public", "uploads"); // dist/public/uploads
+
+    // If fallback has files (e.g. from build/postbuild) but preferred doesn't exist yet,
+    // create preferred and copy files so they remain accessible when the server serves
+    // from dist/server/public.
+    if (!fs.existsSync(preferred)) {
+      fs.mkdirSync(preferred, { recursive: true });
+      if (fs.existsSync(fallback)) {
+        try {
+          const items = fs.readdirSync(fallback);
+          for (const it of items) {
+            const from = path.join(fallback, it);
+            const to = path.join(preferred, it);
+            try {
+              fs.copyFileSync(from, to);
+            } catch (copyErr) {
+              // ignore copy failures for individual files
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+
+    const uploadsDir = fs.existsSync(preferred) ? preferred : fallback;
+
+    const multerStorage = multer.diskStorage({
+      destination: (_req, _file, cb) => cb(null, uploadsDir),
+      filename: (_req, file, cb) => {
+        const safe = `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.\-_%]/g, "-")}`;
+        cb(null, safe);
+      },
+    });
+
+    const upload = multer({ storage: multerStorage });
+
+    app.post("/api/upload", authMiddleware, upload.single("file"), async (req: any, res: any) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ error: "No file uploaded" });
+        }
+
+        // Return a URL that the client can use to display the uploaded image
+        const url = `/uploads/${req.file.filename}`;
+        res.json({ url });
+      } catch (err: any) {
+        res.status(500).json({ error: err.message });
+      }
+    });
+  } catch (err) {
+    // Non-fatal: ensure routes still register if uploads dir can't be prepared
+    console.warn("Warning: upload route could not be prepared", err);
+  }
 
   const httpServer = createServer(app);
 

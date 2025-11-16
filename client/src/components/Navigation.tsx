@@ -10,6 +10,7 @@ export function Navigation() {
   const [location] = useLocation();
   const [cartCount, setCartCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     setCartCount(getCartCount());
@@ -18,8 +19,17 @@ export function Navigation() {
       setCartCount(getCartCount());
     };
 
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+
     window.addEventListener("cart-updated", handleCartUpdate);
-    return () => window.removeEventListener("cart-updated", handleCartUpdate);
+    window.addEventListener("scroll", handleScroll);
+    
+    return () => {
+      window.removeEventListener("cart-updated", handleCartUpdate);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const navLinks = [
@@ -29,24 +39,35 @@ export function Navigation() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-8">
+    <header 
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+        scrolled 
+          ? "bg-white/95 backdrop-blur-md border-b border-ui-border shadow-sm" 
+          : "bg-transparent border-b border-transparent"
+      }`}
+    >
+      <div className="max-w-6xl mx-auto px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <Link href="/">
-              <span className="text-2xl font-bold tracking-tight font-display cursor-pointer" data-testid="link-home">
-                FitsNew
-              </span>
+              <img 
+                src="/uploads/fitsnew logo.png" 
+                alt="FitsNew Logo" 
+                className={`h-10 w-auto transition-all duration-300 ${
+                  !scrolled ? "drop-shadow-md" : ""
+                }`}
+                data-testid="link-home"
+              />
             </Link>
 
-            <nav className="hidden md:flex gap-6">
+            <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
               {navLinks.map((link) => (
                 <Link key={link.href} href={link.href}>
                   <span
-                    className={`text-sm font-medium transition-colors hover-elevate px-3 py-2 rounded-md cursor-pointer ${
+                    className={`text-sm font-medium hover:underline cursor-pointer transition-colors ${
                       location === link.href
-                        ? "text-foreground"
-                        : "text-muted-foreground"
+                        ? scrolled ? "text-brand-navy font-semibold" : "text-ui-text font-semibold"
+                        : scrolled ? "text-ui-text" : "text-ui-text"
                     }`}
                     data-testid={`link-nav-${link.label.toLowerCase()}`}
                   >
@@ -95,10 +116,10 @@ export function Navigation() {
                     <Link key={link.href} href={link.href}>
                       <span
                         onClick={() => setMobileOpen(false)}
-                        className={`text-lg font-medium transition-colors hover-elevate px-4 py-2 rounded-md cursor-pointer block ${
+                        className={`text-lg font-medium hover:underline px-4 py-2 rounded-md cursor-pointer block ${
                           location === link.href
-                            ? "text-foreground bg-accent"
-                            : "text-muted-foreground"
+                            ? "text-brand-navy font-semibold"
+                            : "text-ui-text"
                         }`}
                         data-testid={`link-mobile-${link.label.toLowerCase()}`}
                       >

@@ -13,23 +13,32 @@ export default function FitsAgain() {
   );
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       <section
-        className="relative h-[50vh] md:h-[60vh] w-full overflow-hidden bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100"
+        className="relative h-[50vh] md:h-[60vh] w-full overflow-hidden bg-ui-bg-soft"
       >
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-40"
-          style={{ backgroundImage: `url(${fitsAgainImage})` }}
-        />
+        <div className="absolute inset-0">
+          <img
+            src="/uploads/green editorial hero for fitsagain.png"
+            alt="FitsAgain Hero"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
+        </div>
         <div className="relative h-full flex items-center justify-center text-center px-4">
           <div className="max-w-3xl mx-auto space-y-6">
+            <img 
+              src="/uploads/fitsagain logo.png" 
+              alt="FitsAgain Logo" 
+              className="h-16 w-auto mx-auto mb-4" 
+            />
             <h1
-              className="text-5xl md:text-7xl font-bold font-display text-amber-900"
+              className="text-5xl md:text-7xl font-extrabold uppercase tracking-tight font-display text-white"
               data-testid="text-fitsagain-title"
             >
               FitsAgain
             </h1>
-            <p className="text-lg md:text-xl text-amber-800 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto">
               Curated vintage and pre-loved fashion. Sustainable style with unique
               character and timeless appeal.
             </p>
@@ -37,13 +46,13 @@ export default function FitsAgain() {
         </div>
       </section>
 
-      <section className="py-12 md:py-24 bg-gradient-to-b from-amber-50/50 to-background">
-        <div className="container mx-auto px-4 md:px-6">
+      <section className="py-12 md:py-24 bg-ui-bg-soft">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="mb-12 text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold font-display text-amber-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-extrabold uppercase tracking-tight font-display text-brand-green mb-4">
               Vintage Collection
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-[#666666]">
               Each piece tells a story. Discover one-of-a-kind items that bring
               nostalgia and sustainability together.
             </p>

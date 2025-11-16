@@ -1,52 +1,77 @@
+import React from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import heroImage from "@assets/generated_images/FitsNew_hero_banner_image_58d32b11.png";
 
 export function Hero() {
-  return (
-    <section className="relative h-[70vh] md:h-[80vh] w-full overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${heroImage})` }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
-      </div>
+  const handleScrollClick = (e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => {
+    e.preventDefault();
+    const element = document.getElementById('home-content');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
-      <div className="relative h-full flex items-center justify-center text-center px-4">
-        <div className="max-w-3xl mx-auto space-y-6">
-          <h1
-            className="text-5xl md:text-7xl font-bold tracking-tight text-white"
-            data-testid="text-hero-title"
-          >
-            Elevate Your Style
-          </h1>
-          <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto">
-            Discover premium contemporary fashion and curated vintage pieces
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Link href="/shop">
-              <Button
-                size="lg"
-                variant="default"
-                className="text-base font-semibold uppercase tracking-wide min-w-40"
-                data-testid="button-shop-now"
+  return (
+    <section className="relative min-h-screen w-full overflow-hidden">
+      {/* Background image */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="/uploads/navy editorial hero.png"
+          alt="FitsNew Hero"
+          className="w-full h-full object-cover"
+          draggable="false"
+        />
+      </div>
+      
+      {/* Content overlay */}
+      <div className="relative z-10 min-h-screen flex items-center">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12 w-full">
+          <div className="max-w-2xl">
+            {/* Text content */}
+            <div className="space-y-6 md:space-y-8">
+              <h1
+                className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold uppercase tracking-[-0.02em] text-ui-text font-display leading-[0.95]"
+                data-testid="text-hero-title"
               >
-                Shop Now
-              </Button>
-            </Link>
-            <Link href="/fitsagain">
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-base font-semibold uppercase tracking-wide min-w-40 bg-background/20 backdrop-blur-sm border-white/30 text-white hover:bg-background/30"
-                data-testid="button-explore-vintage"
-              >
-                Explore Vintage
-              </Button>
-            </Link>
+                ESSENTIALS,<br />REDEFINED
+              </h1>
+              <p className="text-base md:text-lg lg:text-xl text-[#666666] leading-relaxed max-w-md font-sans font-normal">
+                Timeless basics crafted for everyday comfort.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                <Link href="/shop">
+                  <Button
+                    size="lg"
+                    className="bg-brand-navy text-white px-8 py-3 rounded-md font-semibold hover:bg-[#0B2458] transition-colors w-full sm:w-auto"
+                    data-testid="button-shop-now"
+                  >
+                    SHOP NOW
+                  </Button>
+                </Link>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border border-ui-text text-ui-text bg-transparent px-8 py-3 rounded-md hover:bg-ui-bg-soft transition-colors w-full sm:w-auto"
+                  onClick={handleScrollClick}
+                  data-testid="button-explore"
+                >
+                  EXPLORE
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Scroll indicator (mouse outline with animated dot) */}
+      <a
+        href="#home-content"
+        aria-label="Scroll down"
+        className="absolute left-1/2 -translate-x-1/2 bottom-8 cursor-pointer transition-transform hover:scale-110 z-20"
+        onClick={handleScrollClick}
+      >
+        <span className="scroll-mouse-indicator" />
+      </a>
     </section>
   );
 }

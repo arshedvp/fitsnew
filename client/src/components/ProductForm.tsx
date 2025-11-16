@@ -11,16 +11,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Product } from "@shared/schema";
+import { useState } from "react";
 
 const productFormSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  price: z.number().min(1, "Price must be at least 1"),
+  price: z.preprocess((val) => {
+    if (typeof val === "string") return val === "" ? undefined : Number(val);
+    return val;
+  }, z.number().min(1, "Price must be at least 1")),
   category: z.string().min(1, "Category is required"),
   brand: z.enum(["FitsNew", "FitsAgain"]),
   sizes: z.array(z.string()).min(1, "At least one size is required"),
   images: z.array(z.string()).min(1, "At least one image is required"),
-  stock: z.number().min(0, "Stock cannot be negative"),
+  stock: z.preprocess((val) => {
+    if (typeof val === "string") return val === "" ? undefined : Number(val);
+    return val;
+  }, z.number().min(0, "Stock cannot be negative")),
   isFeatured: z.boolean(),
   isTrending: z.boolean(),
 });
@@ -37,32 +44,36 @@ const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
 
 export function ProductForm({ product, onSuccess }: ProductFormProps) {
   const { toast } = useToast();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
-    defaultValues: product ? {
-      title: product.title,
-      description: product.description,
-      price: product.price,
-      category: product.category,
-      brand: product.brand as "FitsNew" | "FitsAgain",
-      sizes: product.sizes,
-      images: product.images,
-      stock: product.stock,
-      isFeatured: product.isFeatured,
-      isTrending: product.isTrending,
-    } : {
-      title: "",
-      description: "",
-      price: 0,
-      category: "",
-      brand: "FitsNew",
-      sizes: [],
-      images: [],
-      stock: 0,
-      isFeatured: false,
-      isTrending: false,
-    },
+    defaultValues: product
+      ? {
+          title: product.title,
+          description: product.description,
+          price: product.price,
+          category: product.category,
+          brand: product.brand as "FitsNew" | "FitsAgain",
+          sizes: product.sizes,
+          images: product.images,
+          stock: product.stock,
+          isFeatured: product.isFeatured,
+          isTrending: product.isTrending,
+        }
+      : {
+          title: "",
+          description: "",
+          price: undefined as any,
+          category: "",
+          brand: "FitsNew",
+          sizes: [],
+          images: [],
+          stock: undefined as any,
+          isFeatured: false,
+          isTrending: false,
+        },
   });
 
   const mutation = useMutation({
@@ -107,6 +118,43 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     if (url) {
       const currentImages = form.getValues("images");
       form.setValue("images", [...currentImages, url]);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) setSelectedFile(file);
+  };
+
+  const handleUploadFile = async () => {
+    if (!selectedFile) return;
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const token = localStorage.getItem("admin_token");
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`${res.status}: ${txt}`);
+      }
+
+      const json = await res.json();
+      const currentImages = form.getValues("images");
+      form.setValue("images", [...currentImages, json.url]);
+      setSelectedFile(null);
+      toast({ title: "Upload successful", description: "Image uploaded and added to product" });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message || "Could not upload image", variant: "destructive" });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -158,12 +206,14 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Price (₹)</FormLabel>
-                <FormControl>
+                  <FormControl>
                   <Input
-                    type="number"
-                    placeholder="999"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder=""
                     {...field}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    value={field.value ?? ""}
                     data-testid="input-price"
                   />
                 </FormControl>
@@ -178,12 +228,14 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Stock</FormLabel>
-                <FormControl>
+                  <FormControl>
                   <Input
-                    type="number"
-                    placeholder="50"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder=""
                     {...field}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    value={field.value ?? ""}
                     data-testid="input-stock"
                   />
                 </FormControl>
@@ -306,6 +358,25 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
                 >
                   Add Image URL
                 </Button>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleFileChange}
+                    data-testid="input-file"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleUploadFile}
+                    disabled={!selectedFile || isUploading}
+                    data-testid="button-upload-file"
+                  >
+                    {isUploading ? "Uploading..." : "Upload Image"}
+                  </Button>
+                </div>
               </div>
               <FormMessage />
             </FormItem>

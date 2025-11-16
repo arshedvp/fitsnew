@@ -36,8 +36,12 @@ export default function ProductDetail() {
       });
       return;
     }
-
     if (product) {
+      if (product.stock <= 0) {
+        toast({ title: "Out of stock", description: "This product is currently out of stock", variant: "destructive" });
+        return;
+      }
+
       addToCart({
         productId: product.id,
         title: product.title,
@@ -113,150 +117,149 @@ export default function ProductDetail() {
   }
 
   return (
-    <div className="min-h-screen py-8 md:py-12">
-      <div className="container mx-auto px-4 md:px-6">
-        <Link href="/shop">
-          <Button variant="ghost" className="mb-6" data-testid="button-back-to-shop">
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            Back to Shop
-          </Button>
-        </Link>
+    <main className="max-w-6xl mx-auto px-6 py-12 bg-white">
+      <Link href="/shop">
+        <Button variant="ghost" className="mb-6 text-ui-text" data-testid="button-back-to-shop">
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Back to Shop
+        </Button>
+      </Link>
 
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-          <div className="space-y-4">
-            <div className="aspect-[3/4] rounded-lg overflow-hidden bg-muted">
-              <img
-                src={product.images[selectedImage]}
-                alt={product.title}
-                className="w-full h-full object-cover"
-                data-testid="img-product-main"
-              />
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {product.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`aspect-square rounded-md overflow-hidden border-2 transition-colors ${
-                    selectedImage === index
-                      ? "border-primary"
-                      : "border-transparent hover:border-border"
-                  }`}
-                  data-testid={`button-image-${index}`}
-                >
-                  <img
-                    src={image}
-                    alt={`${product.title} ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+      <div className="grid md:grid-cols-2 gap-8">
+        <div className="bg-ui-bg-soft rounded-lg p-6">
+          <img
+            src={product.images[selectedImage]}
+            alt={product.title}
+            className="w-full object-cover rounded-md"
+            data-testid="img-product-main"
+          />
+          <div className="grid grid-cols-4 gap-2 mt-4">
+            {product.images.map((image, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedImage(index)}
+                className={`aspect-square rounded-md overflow-hidden border-2 transition-colors ${
+                  selectedImage === index
+                    ? "border-brand-navy"
+                    : "border-ui-border hover:border-ui-border"
+                }`}
+                data-testid={`button-image-${index}`}
+              >
+                <img
+                  src={image}
+                  alt={`${product.title} ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            {product.brand === "FitsAgain" && (
+              <Badge className="bg-brand-green text-white">
+                Vintage
+              </Badge>
+            )}
+            {product.isTrending && (
+              <Badge className="bg-brand-navy text-white">Trending</Badge>
+            )}
+          </div>
+          <h1
+            className="text-2xl font-bold text-ui-text mb-2"
+            data-testid="text-product-title"
+          >
+            {product.title}
+          </h1>
+          <p className="text-sm text-[#666666] mb-4">{product.category}</p>
+
+          <div className="text-xl font-semibold text-ui-text mb-6" data-testid="text-product-price">
+            ₹{product.price}
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4 mb-6">
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                {product.brand === "FitsAgain" && (
-                  <Badge variant="secondary" className="bg-amber-100 text-amber-900 border-amber-300">
-                    Vintage
-                  </Badge>
-                )}
-                {product.isTrending && (
-                  <Badge variant="default">Trending</Badge>
-                )}
+              <label className="text-sm font-medium mb-2 block text-ui-text">
+                Select Size
+              </label>
+              <div className="flex gap-2 flex-wrap">
+                {product.sizes.map((size) => (
+                  <Button
+                    key={size}
+                    variant={selectedSize === size ? "default" : "outline"}
+                    className={selectedSize === size
+                      ? "bg-brand-navy text-white hover:bg-[#0B2458]"
+                      : "border border-ui-border text-ui-text hover:bg-ui-bg-soft"}
+                    onClick={() => setSelectedSize(size)}
+                    data-testid={`button-size-${size}`}
+                  >
+                    {size}
+                  </Button>
+                ))}
               </div>
-              <h1
-                className="text-3xl md:text-4xl font-bold mb-2"
-                data-testid="text-product-title"
-              >
-                {product.title}
-              </h1>
-              <p className="text-muted-foreground">{product.category}</p>
             </div>
 
-            <div className="text-3xl md:text-4xl font-bold" data-testid="text-product-price">
-              ₹{product.price}
-            </div>
-
-            <Separator />
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Select Size
-                </label>
-                <div className="flex gap-2 flex-wrap">
-                  {product.sizes.map((size) => (
-                    <Button
-                      key={size}
-                      variant={selectedSize === size ? "default" : "outline"}
-                      onClick={() => setSelectedSize(size)}
-                      data-testid={`button-size-${size}`}
-                    >
-                      {size}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3 pt-4">
+            <div className="space-y-3 pt-4">
+              {product.stock > 0 ? (
                 <Button
                   size="lg"
-                  className="w-full"
+                  className="w-full bg-brand-navy text-white hover:bg-[#0B2458]"
                   onClick={handleAddToCart}
                   data-testid="button-add-to-cart"
                 >
                   <ShoppingCart className="mr-2 h-5 w-5" />
                   Add to Cart
                 </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full bg-green-600 hover:bg-green-700 text-white border-green-700"
-                  onClick={handleWhatsAppOrder}
-                  data-testid="button-order-whatsapp"
-                >
-                  <FaWhatsapp className="mr-2 h-5 w-5" />
-                  Order on WhatsApp
+              ) : (
+                <Button size="lg" className="w-full" disabled data-testid="button-out-of-stock">
+                  Out of stock
                 </Button>
-              </div>
+              )}
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-brand-green hover:bg-brand-green-100 text-white border-brand-green"
+                onClick={handleWhatsAppOrder}
+                data-testid="button-order-whatsapp"
+              >
+                <FaWhatsapp className="mr-2 h-5 w-5" />
+                Order on WhatsApp
+              </Button>
             </div>
-
-            <Separator />
-
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="description">
-                <AccordionTrigger>Description</AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {product.description}
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="details">
-                <AccordionTrigger>Product Details</AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    <div className="flex justify-between">
-                      <span>Category:</span>
-                      <span className="font-medium">{product.category}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Brand:</span>
-                      <span className="font-medium">{product.brand}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Stock:</span>
-                      <span className="font-medium">{product.stock} units</span>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
           </div>
+
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="description">
+              <AccordionTrigger>Description</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-[#666666] leading-relaxed">
+                  {product.description}
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="details">
+              <AccordionTrigger>Product Details</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2 text-sm text-[#666666]">
+                  <div className="flex justify-between">
+                    <span>Category:</span>
+                    <span className="font-medium">{product.category}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Brand:</span>
+                    <span className="font-medium">{product.brand}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Stock:</span>
+                    <span className="font-medium">{product.stock} units</span>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
